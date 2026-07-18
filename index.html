@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TechStore — Pago con PayPhone</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+    :root {
+      --bg: #0f0f13;
+      --surface: #18181f;
+      --card: #1e1e28;
+      --border: #2a2a38;
+      --accent: #5b6af7;
+      --accent2: #7c8bff;
+      --green: #22c55e;
+      --red: #ef4444;
+      --text: #e8e8f0;
+      --muted: #8888aa;
+      --pp-blue: #0066ff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.2rem; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent2); }
+    .cart-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: border-color .2s;
+    }
+    .cart-btn:hover { border-color: var(--accent2); }
+    #cart-count {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 1px 7px;
+    }
+
+    /* ── MAIN ── */
+    main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+    h1 { font-family: 'Space Grotesk', sans-serif; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
+
+    /* ── PRODUCTS GRID ── */
+    .products { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.2rem; }
+
+    .product-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: transform .2s, border-color .2s;
+    }
+    .product-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+    .product-img {
+      width: 100%; height: 150px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.5rem;
+      background: linear-gradient(135deg, #1a1a26 0%, #222230 100%);
+    }
+    .product-info { padding: 1rem; }
+    .product-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.3rem; }
+    .product-desc { color: var(--muted); font-size: 0.8rem; margin-bottom: 0.9rem; line-height: 1.4; }
+    .product-footer { display: flex; align-items: center; justify-content: space-between; }
+    .price { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--accent2); }
+    .add-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.4rem 0.9rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .add-btn:hover { background: var(--accent2); }
+
+    /* ── CART PANEL ── */
+    .cart-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.6);
+      z-index: 200;
+    }
+    .cart-panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 380px;
+      max-width: 95vw;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      z-index: 201;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .3s ease;
+    }
+    .cart-panel.open { transform: translateX(0); }
+    .cart-overlay.open { display: block; }
+
+    .cart-header {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .cart-header h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; }
+    .close-btn { background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; }
+    .close-btn:hover { color: var(--text); }
+
+    .cart-items { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+    .cart-empty { text-align: center; color: var(--muted); margin-top: 3rem; font-size: 0.95rem; }
+
+    .cart-item {
+      display: flex; align-items: center; gap: 0.8rem;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .ci-icon { font-size: 1.8rem; width: 44px; text-align: center; }
+    .ci-info { flex: 1; }
+    .ci-name { font-size: 0.9rem; font-weight: 500; }
+    .ci-price { font-size: 0.82rem; color: var(--muted); }
+    .ci-qty { display: flex; align-items: center; gap: 0.4rem; }
+    .qty-btn {
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--text); width: 26px; height: 26px;
+      border-radius: 6px; cursor: pointer; font-size: 0.95rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .qty-btn:hover { border-color: var(--accent2); }
+    .qty-num { font-size: 0.9rem; min-width: 20px; text-align: center; }
+
+    /* ── CART FOOTER ── */
+    .cart-footer { padding: 1.2rem 1.5rem; border-top: 1px solid var(--border); }
+
+    .cart-totals {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      margin-bottom: 1rem;
+    }
+    .ct-row {
+      display: flex; justify-content: space-between;
+      font-size: 0.82rem; color: var(--muted);
+      padding: 0.2rem 0;
+    }
+    .ct-total {
+      display: flex; justify-content: space-between;
+      font-weight: 700; font-size: 1rem;
+      border-top: 1px solid var(--border);
+      margin-top: 0.5rem; padding-top: 0.5rem;
+    }
+    .ct-total .t-amount {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.15rem;
+      color: var(--accent2);
+    }
+
+    /* ── PAYPHONE BUTTON ── */
+    .pp-btn {
+      width: 100%;
+      background: var(--pp-blue);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.85rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: background .2s, transform .1s;
+      letter-spacing: 0.2px;
+    }
+    .pp-btn:hover:not(:disabled) { background: #004fd4; }
+    .pp-btn:active:not(:disabled) { transform: scale(.98); }
+    .pp-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pp-logo {
+      background: #fff;
+      color: var(--pp-blue);
+      font-weight: 900;
+      font-size: 0.7rem;
+      padding: 2px 5px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+
+    /* ── SPINNER INLINE (dentro del botón) ── */
+    .btn-spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--green);
+      color: #fff;
+      padding: 0.65rem 1.3rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      z-index: 999;
+      transition: transform .3s;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Tech<span>Store</span></div>
+  <button class="cart-btn" onclick="openCart()">
+    🛒 Carrito <span id="cart-count">0</span>
+  </button>
+</header>
+
+<!-- MAIN -->
+<main>
+  <h1>Productos destacados</h1>
+  <p class="subtitle">Selecciona productos y paga directamente con PayPhone</p>
+  <div class="products" id="products-grid"></div>
+</main>
+
+<!-- OVERLAY -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+
+<!-- CART PANEL -->
+<div class="cart-panel" id="cart-panel">
+  <div class="cart-header">
+    <h2>🛒 Mi Carrito</h2>
+    <button class="close-btn" onclick="closeCart()">✕</button>
+  </div>
+
+  <div class="cart-items" id="cart-items">
+    <p class="cart-empty">Tu carrito está vacío.</p>
+  </div>
+
+  <div class="cart-footer">
+    <!-- Resumen de totales -->
+    <div class="cart-totals" id="cart-totals" style="display:none">
+      <div class="ct-row"><span>Subtotal (sin IVA)</span><span id="ct-base">$0.00</span></div>
+      <div class="ct-row"><span>IVA 12%</span><span id="ct-iva">$0.00</span></div>
+      <div class="ct-total">
+        <span>Total</span>
+        <span class="t-amount" id="ct-total">$0.00</span>
+      </div>
+    </div>
+
+    <!-- Botón directo a PayPhone -->
+    <button class="pp-btn" id="checkout-btn" onclick="processPayment()" disabled>
+      <span class="pp-logo">PP</span>
+      <span id="btn-label">Pagar con PayPhone</span>
+    </button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// PRODUCTOS
+// ─────────────────────────────────────────────
+const PRODUCTS = [
+  { id: 1, name: 'Auriculares BT Pro X',      icon: '🎧', price: 89.99,  desc: 'Sonido 360° con cancelación activa de ruido y batería de 40h.' },
+  { id: 2, name: 'Teclado Mecánico RGB',      icon: '⌨️', price: 64.50,  desc: 'Switches táctiles, retroiluminación RGB por tecla.' },
+  { id: 3, name: 'Webcam 4K Ultra',           icon: '📷', price: 110.00, desc: 'Resolución 4K, autofoco rápido, micrófono dual integrado.' },
+  { id: 4, name: 'Mouse Inalámbrico Elite',   icon: '🖱️', price: 45.00,  desc: '12000 DPI, autonomía de 70 días, botones laterales.' },
+  { id: 5, name: 'Hub USB-C 7 en 1',          icon: '🔌', price: 38.00,  desc: 'HDMI 4K, USB 3.0 ×3, SD, TF, PD 100W.' },
+  { id: 6, name: 'SSD Externo 1TB',           icon: '💾', price: 95.00,  desc: 'Velocidad 1050 MB/s, resistente a golpes y agua.' },
+  { id: 7, name: 'Soporte Monitor Dual',      icon: '🖥️', price: 55.00,  desc: 'Brazo articulado para dos monitores, rotación 360°.' },
+  { id: 8, name: 'Lámpara LED de Escritorio', icon: '💡', price: 22.99,  desc: 'Luz fría/cálida, intensidad ajustable, carga USB.' },
+];
+
+// ─────────────────────────────────────────────
+// CARRITO
+// ─────────────────────────────────────────────
+let cart = {};
+let paying = false;
+
+function renderProducts() {
+  document.getElementById('products-grid').innerHTML = PRODUCTS.map(p => `
+    <div class="product-card">
+      <div class="product-img">${p.icon}</div>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-footer">
+          <span class="price">$${p.price.toFixed(2)}</span>
+          <button class="add-btn" onclick="addToCart(${p.id})">+ Añadir</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addToCart(id) {
+  cart[id] = (cart[id] || 0) + 1;
+  updateCartUI();
+  showToast(`${PRODUCTS.find(p => p.id === id).name} añadido ✓`);
+}
+
+function changeQty(id, delta) {
+  cart[id] = (cart[id] || 0) + delta;
+  if (cart[id] <= 0) delete cart[id];
+  updateCartUI();
+}
+
+function updateCartUI() {
+  const items  = Object.entries(cart);
+  const total  = items.reduce((s, [id, q]) => s + PRODUCTS.find(p => p.id == id).price * q, 0);
+  const count  = items.reduce((s, [, q]) => s + q, 0);
+  const base   = total / 1.12;
+  const iva    = total - base;
+
+  // Header badge
+  document.getElementById('cart-count').textContent = count;
+
+  // Botón checkout
+  const btn = document.getElementById('checkout-btn');
+  btn.disabled = count === 0 || paying;
+
+  // Totales en el footer
+  const totalsEl = document.getElementById('cart-totals');
+  if (count > 0) {
+    totalsEl.style.display = 'block';
+    document.getElementById('ct-base').textContent  = '$' + base.toFixed(2);
+    document.getElementById('ct-iva').textContent   = '$' + iva.toFixed(2);
+    document.getElementById('ct-total').textContent = '$' + total.toFixed(2);
+  } else {
+    totalsEl.style.display = 'none';
+  }
+
+  // Lista de items
+  const el = document.getElementById('cart-items');
+  if (items.length === 0) {
+    el.innerHTML = '<p class="cart-empty">Tu carrito está vacío.</p>';
+    return;
+  }
+  el.innerHTML = items.map(([id, qty]) => {
+    const p = PRODUCTS.find(x => x.id == id);
+    return `
+      <div class="cart-item">
+        <div class="ci-icon">${p.icon}</div>
+        <div class="ci-info">
+          <div class="ci-name">${p.name}</div>
+          <div class="ci-price">$${p.price.toFixed(2)} c/u · subtotal $${(p.price * qty).toFixed(2)}</div>
+        </div>
+        <div class="ci-qty">
+          <button class="qty-btn" onclick="changeQty(${id}, -1)">−</button>
+          <span class="qty-num">${qty}</span>
+          <button class="qty-btn" onclick="changeQty(${id}, 1)">+</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function openCart()  {
+  document.getElementById('cart-panel').classList.add('open');
+  document.getElementById('cart-overlay').classList.add('open');
+}
+function closeCart() {
+  document.getElementById('cart-panel').classList.remove('open');
+  document.getElementById('cart-overlay').classList.remove('open');
+}
+
+// ─────────────────────────────────────────────
+// PROCESO DE PAGO — directo al proxy PHP
+// ─────────────────────────────────────────────
+async function processPayment() {
+  if (paying) return;
+  paying = true;
+
+  // Mostrar spinner en el botón
+  const btn = document.getElementById('checkout-btn');
+  btn.disabled = true;
+  document.getElementById('btn-label').textContent = 'Preparando pago...';
+  btn.innerHTML = `
+    <div class="btn-spinner"></div>
+    <span>Conectando con PayPhone...</span>
+  `;
+
+  const items = Object.entries(cart);
+  const total = items.reduce((s, [id, q]) => s + PRODUCTS.find(p => p.id == id).price * q, 0);
+
+  // Montos en centavos — los precios ya incluyen IVA 12%
+  const totalCents        = Math.round(total * 100);
+  const baseGravableCents = Math.round((total / 1.12) * 100);
+  const ivaCents          = totalCents - baseGravableCents;
+
+  const clientTransactionId = 'TRX-' + Date.now() + '-' + (Math.floor(Math.random() * 9000) + 1000);
+
+  const lineItems = items.map(([id, qty]) => {
+    const p         = PRODUCTS.find(x => x.id == id);
+    const itemTotal = Math.round(p.price * qty * 100);
+    const itemBase  = Math.round((p.price * qty / 1.12) * 100);
+    return {
+      productName:        p.name,
+      unitPrice:          Math.round(p.price * 100),
+      quantity:           qty,
+      totalAmount:        itemTotal,
+      taxAmount:          itemTotal - itemBase,
+      productSKU:         'SKU-' + p.id,
+      productDescription: p.desc
+    };
+  });
+
+  const payload = {
+    amount:              totalCents,
+    amountWithoutTax:    0,
+    amountWithTax:       baseGravableCents,
+    tax:                 ivaCents,
+    service:             0,
+    tip:                 0,
+    currency:            'USD',
+    clientTransactionId: clientTransactionId,
+    reference:           'TechStore — ' + items.length + ' producto(s)',
+    lang:                'es',
+    order: {
+      lineItems: lineItems
+    }
+  };
+
+  try {
+    const res  = await fetch('payphone-proxy.php?action=prepare', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (data.payWithCard) {
+      // Redirigir al formulario oficial de PayPhone
+      sessionStorage.setItem('pp_clientTxId', clientTransactionId);
+      window.location.href = data.payWithCard;
+    } else {
+      resetButton();
+      showToast('❌ Error PayPhone: ' + (data.message || JSON.stringify(data)), 'error');
+    }
+
+  } catch (err) {
+    resetButton();
+    showToast('❌ Error de red: ' + err.message + ' — ¿está corriendo PHP?', 'error');
+  }
+}
+
+function resetButton() {
+  paying = false;
+  const btn = document.getElementById('checkout-btn');
+  btn.disabled = false;
+  btn.innerHTML = `
+    <span class="pp-logo">PP</span>
+    <span id="btn-label">Pagar con PayPhone</span>
+  `;
+  updateCartUI();
+}
+
+// ─────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = type === 'error' ? '#ef4444' : type === 'warn' ? '#f59e0b' : '#22c55e';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+renderProducts();
+</script>
+</body>
+</html>

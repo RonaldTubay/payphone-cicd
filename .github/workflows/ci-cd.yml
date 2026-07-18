@@ -1,0 +1,44 @@
+name: CI/CD PayPhone TechStore
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-test-deploy:
+    name: Build, Test and Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, json
+
+      - name: PHP syntax check
+        run: |
+          php -l config.php
+          php -l payphone-proxy.php
+          php -l response.php
+          php -l scripts/validate.php
+
+      - name: Functional project validation
+        run: php scripts/validate.php
+
+      - name: Build deploy folder
+        run: |
+          mkdir -p deploy
+          cp index.html payphone-proxy.php response.php config.php .env.example deploy/
+
+      - name: Upload deploy artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: techstore-payphone-deploy
+          path: deploy
