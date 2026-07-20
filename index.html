@@ -14,10 +14,49 @@
 
   <style>
     :root {
+      /* Tema Claro (Por Defecto) */
+      --bg:            #f8fafc;
+      --bg-grad:       radial-gradient(1200px 600px at 80% -10%, rgba(91,106,247,.08), transparent 60%),
+                       radial-gradient(900px 500px at -10% 30%, rgba(124,139,255,.05), transparent 60%),
+                       #f8fafc;
+      --header-bg:     rgba(255, 255, 255, 0.8);
+      --surface:       #ffffff;
+      --surface-2:     #f1f5f9;
+      --card:          #ffffff;
+      --card-hover:    #f8fafc;
+      --border:        #e2e8f0;
+      --border-strong: #cbd5e1;
+      --accent:        #4f46e5;
+      --accent-2:      #6366f1;
+      --accent-soft:   rgba(79, 70, 229, 0.08);
+      --green:         #16a34a;
+      --amber:         #d97706;
+      --red:           #dc2626;
+      --text:          #0f172a;
+      --muted:         #64748b;
+      --muted-2:       #94a3b8;
+      --pp-blue:       #0066ff;
+      --pp-blue-dark:  #0050cc;
+      --img-bg:        linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+
+      --radius-sm: 8px;
+      --radius:    12px;
+      --radius-lg: 16px;
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+      --shadow:    0 10px 15px -3px rgba(0,0,0,.05), 0 4px 6px -4px rgba(0,0,0,.05);
+      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,.1), 0 8px 10px -6px rgba(0,0,0,.1);
+
+      --ease: cubic-bezier(.4, 0, .2, 1);
+    }
+
+    body.dark-mode {
+      /* Tema Oscuro */
       --bg:            #0b0b10;
       --bg-grad:       radial-gradient(1200px 600px at 80% -10%, rgba(91,106,247,.18), transparent 60%),
                        radial-gradient(900px 500px at -10% 30%, rgba(124,139,255,.10), transparent 60%),
                        #0b0b10;
+      --header-bg:     rgba(20, 20, 28, 0.72);
       --surface:       #14141c;
       --surface-2:     #191922;
       --card:          #1c1c27;
@@ -33,18 +72,7 @@
       --text:          #eef0f7;
       --muted:         #9797b5;
       --muted-2:       #6f6f8a;
-      --pp-blue:       #0066ff;
-      --pp-blue-dark:  #0050cc;
-
-      --radius-sm: 8px;
-      --radius:    12px;
-      --radius-lg: 16px;
-
-      --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
-      --shadow:    0 8px 24px rgba(0,0,0,.35);
-      --shadow-lg: 0 20px 48px rgba(0,0,0,.45);
-
-      --ease: cubic-bezier(.4, 0, .2, 1);
+      --img-bg:        linear-gradient(135deg, #1a1a26 0%, #232332 100%);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -61,13 +89,14 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
+      transition: background 0.3s var(--ease), color 0.3s var(--ease);
     }
 
     ::selection { background: var(--accent); color: #fff; }
 
     /* ── HEADER ── */
     header {
-      background: rgba(20, 20, 28, 0.72);
+      background: var(--header-bg);
       backdrop-filter: saturate(140%) blur(12px);
       -webkit-backdrop-filter: saturate(140%) blur(12px);
       border-bottom: 1px solid var(--border);
@@ -79,6 +108,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
+      transition: background 0.3s var(--ease), border-bottom 0.3s var(--ease);
     }
     .logo {
       font-family: 'Space Grotesk', sans-serif;
@@ -100,6 +130,29 @@
       box-shadow: 0 2px 8px rgba(91,106,247,.4);
     }
     .logo span { color: var(--accent-2); }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .theme-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: border-color .2s var(--ease), background .2s var(--ease), transform .1s var(--ease);
+    }
+    .theme-btn:hover { border-color: var(--accent-2); background: var(--card-hover); }
+    .theme-btn:active { transform: scale(.95); }
 
     .cart-btn {
       background: var(--card);
@@ -181,7 +234,7 @@
       align-items: center;
       justify-content: center;
       font-size: 3.6rem;
-      background: linear-gradient(135deg, #1a1a26 0%, #232332 100%);
+      background: var(--img-bg);
       border-bottom: 1px solid var(--border);
       position: relative;
       overflow: hidden;
@@ -490,11 +543,16 @@
     <span class="logo-mark" aria-hidden="true">⚡</span>
     Tech<span>Store</span>
   </div>
-  <button class="cart-btn" type="button" id="cart-toggle" aria-label="Abrir carrito de compras" aria-controls="cart-panel" aria-expanded="false">
-    <span aria-hidden="true">🛒</span>
-    <span>Carrito</span>
-    <span id="cart-count" aria-live="polite">0</span>
-  </button>
+  <div class="header-actions">
+    <button class="theme-btn" type="button" id="theme-toggle" aria-label="Cambiar tema visual">
+      <span id="theme-icon">☀️</span>
+    </button>
+    <button class="cart-btn" type="button" id="cart-toggle" aria-label="Abrir carrito de compras" aria-controls="cart-panel" aria-expanded="false">
+      <span aria-hidden="true">🛒</span>
+      <span>Carrito</span>
+      <span id="cart-count" aria-live="polite">0</span>
+    </button>
+  </div>
 </header>
 
 <!-- MAIN -->
@@ -802,8 +860,30 @@
   }
 
   // ─────────────────────────────────────────────
+  // GESTIÓN DE TEMA (CLARO / OSCURO)
+  // ─────────────────────────────────────────────
+  function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    // Si no hay tema guardado, usamos el tema claro (por defecto)
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark-mode');
+      $('theme-icon').textContent = '🌙';
+    } else {
+      document.body.classList.remove('dark-mode');
+      $('theme-icon').textContent = '☀️';
+    }
+  }
+
+  function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    $('theme-icon').textContent = isDark ? '🌙' : '☀️';
+  }
+
+  // ─────────────────────────────────────────────
   // EVENTOS
   // ─────────────────────────────────────────────
+  $('theme-toggle').addEventListener('click', toggleTheme);
   $('cart-toggle').addEventListener('click', openCart);
   $('cart-close').addEventListener('click', closeCart);
   $('cart-overlay').addEventListener('click', closeCart);
@@ -826,6 +906,7 @@
   // ─────────────────────────────────────────────
   // INIT
   // ─────────────────────────────────────────────
+  initTheme();
   renderProducts();
   updateCartUI();
 })();
