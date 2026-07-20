@@ -10,8 +10,10 @@ define('PP_STORE_ID', PAYPHONE_STORE_ID);
 define('PP_PREPARE_URL', PAYPHONE_PREPARE_URL);
 define('PP_CONFIRM_URL', PAYPHONE_CONFIRM_URL);
 
-// ── URL BASE DE TU PROYECTO 
-define('BASE_URL', PAYPHONE_BASE_URL);
+// ── URL BASE DE TU PROYECTO (Autodetectada dinámicamente si está vacía o es localhost)
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || ($_SERVER['SERVER_PORT'] ?? 80) == 443) ? "https://" : "http://";
+$detectedBase = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost:8080');
+define('BASE_URL', (PAYPHONE_BASE_URL === '' || str_contains(PAYPHONE_BASE_URL, 'localhost')) ? $detectedBase : PAYPHONE_BASE_URL);
 
 
 // ── CABECERAS DE RESPUESTA ───────────────────────────────────────────────
